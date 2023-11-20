@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <conio.h>
 #include <Windows.h>
 
 //data file locations
@@ -24,10 +25,11 @@ struct Usr {
 	char UsrName[50];
 	int hitpoints;
 	int atk;
+	int hitC;
 	int critC;
 	float critD;
 	int def;
-}userdefault = { "John Doe",20,5,60,1.4,2 };
+}userdefault = { "John Doe",20,5,60,30,1.4,2 };
 //target structure
 struct Mob {
 	char MobName[50];
@@ -49,14 +51,16 @@ struct Actions {
 {"1.ITEM          2.OPTIONS",
   "3.ATTACK         4.SKILL"};
 
+//middle message field
 struct MsgField {
 	char *message1[30];
 	char *message2[30];
 }genericmsg = { DUMMYTEXT,DUMMYTEXT }; 
 struct MsgField blankmsg = { BLANKLINE,BLANKLINE };
-struct MsgField actionResult = { "",""};
+struct MsgField actionResult;
 
 //effect functions
+
 void clrscr();
 void coolprint(char s[]);
 void coolprint(const char *s)
@@ -214,6 +218,11 @@ int listTargetData() {
 int listMsgField(struct MsgField message)
 {
 	printf("%s\n",message.message1);
+	printf("\r"); 
+	for (int i = 0; i < 35; i++) {
+		printf(" ");
+		Sleep(10);
+	};
 	printf("%s\n", message.message2);
 	return 0;
 }
@@ -258,12 +267,24 @@ int listActions()
 //crit action
 int usrAction_HitCritical(struct Usr *user ,struct Mob *target)
 {
-	int damage = user->atk * user->critD;
+	int damage = (user->atk * user->critD) - target->def ;
 	//printf("\nCritical Hit");
 	//Sleep(1000);
 	target->hitpoints -= damage;
-	strcpy(actionResult.message1, "Critical Hit!! %d DMG \n",damage);
-	//strcpy(actionResult.message2, "%d DMG",damage);
+	char* dmgnum = ("%d damage", damage);
+	strcpy(actionResult.message1, "Critical Hit!! \n");
+	strcpy(actionResult.message2, &dmgnum);
+	updateRound(actionResult);
+	return 0;
+}
+
+int usrAction_Hit(struct Usr* user, struct Mob* target)
+{
+	int damage = user->atk - target->def;
+	target->hitpoints -= damage;
+	char *dmgnum = ("%d damage", damage);
+	strcpy(actionResult.message1, "Solid Hit! \n");
+	strcpy(actionResult.message2, &dmgnum);
 	updateRound(actionResult);
 	return 0;
 }
@@ -271,15 +292,41 @@ int usrAction_HitCritical(struct Usr *user ,struct Mob *target)
 
 int main()
 {
+	srand((unsigned)time(NULL)); //roll the fucking D20
 	//testing
+	//init battle
 	writeTargetData(targetdefault, MOBSTATS);
 	readTargetData(MOBSTATS);
 	listTargetData();
 	writeUserData(userdefault, USRSAVE);
 	readUserData(USRSAVE);
 	listUserData();
-	usrAction_HitCritical(&cur_user,&cur_target);
-	
+
+	do {
+		//select options
+		rewind(stdin);
+		_getch();
+		rewind(stdin);
+		//attack rotation
+		int roll = rand() % 100; //roll the dice
+		printf("\nROLL THE DICE");
+		printf(" \n%5d\n", roll);
+		Sleep(1000); //see the result
+
+		if (roll <= cur_user.critC) //within crit successful range
+			usrAction_HitCritical(&cur_user, &cur_target);
+		else if (roll <= cur_user.hitC)
+			usrAction_Hit(&cur_user, &cur_target);
+		else {
+			//moster action;
+			strcpy(actionResult.message1, "Nothing Happened.");
+			updateRound(actionResult);
+		}
+
+		if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) break;
+
+	} while (1);
+	//battle resolved
 	system("pause");
 	return 0;
 }
