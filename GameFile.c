@@ -114,7 +114,7 @@ void writeUserData(struct Usr toSave, const char* filename)
 
 	//write out saved
 	int flag = 0;
-	flag = fwrite(&toSave, sizeof(struct Mob), 1, file);
+	flag = fwrite(&toSave, sizeof(struct Usr), 1, file);
 	//check
 	if (flag)
 	{
@@ -150,7 +150,7 @@ void readUserData(const char* filename)
 	long fileSize = ftell(file);
 	rewind(file);
 	//save into global struct: current target
-	fread(&cur_user, sizeof(struct Mob), 1, file);
+	fread(&cur_user, sizeof(struct Usr), 1, file);
 	return 0;
 }
 
@@ -336,9 +336,6 @@ int selectAttack()
 		listActionField();
 	}
 }
-
-
-
 
 //crit action
 int usrAttack_HitCritical(struct AttackAction *attackMove ,struct Mob *target)
