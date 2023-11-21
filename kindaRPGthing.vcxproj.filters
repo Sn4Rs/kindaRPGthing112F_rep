@@ -15,13 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="testwrite.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
     <ClCompile Include="GameFile.c">
-      <Filter>來源檔案</Filter>
-    </ClCompile>
-    <ClCompile Include="test_struct.c">
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>
