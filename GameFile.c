@@ -18,6 +18,7 @@
 #define DUMMYTEXT "dummy text super effective!!!"
 #define BLANKLINE "\n"
 #define BOUND__HIGH 5 
+#define MENU_HEIGHT 6
 
 //declare structs
 // USER structure
@@ -43,52 +44,59 @@ struct Mob {
 struct Mob cur_target;//data of the current target
 struct Usr cur_user;//this is you
 
+//middle message field
+struct MsgField {
+	char* message1[30];
+	char* message2[30];
+}genericmsg = { DUMMYTEXT,DUMMYTEXT };
+struct MsgField blankmsg = { BLANKLINE,BLANKLINE };
+struct MsgField actionResult;
+
+
 //action msg struct
 struct Actions {
 	char row1[30];
 	char row2[30];
 }playerTurn=
-{"1.ITEM          2.OPTIONS",
-  "3.ATTACK         4.SKILL"};
+{"1.ITEM          2.RETREAT",
+  "3.ATTACK        4.SKILL"};
 
-//middle message field
-struct MsgField {
-	char *message1[30];
-	char *message2[30];
-}genericmsg = { DUMMYTEXT,DUMMYTEXT }; 
-struct MsgField blankmsg = { BLANKLINE,BLANKLINE };
-struct MsgField actionResult;
+//Attack Actions
+struct AttackAction {
+	int moveID;
+	char skillName[15];
+	int buffHitC; //add to hitC
+	int buffBaseD; //add to base damage
+	float buffCritD; //add to crit damage
+};
+struct AttackAction AttackMove[3] = {
+	{ 1,"Fast Attack",10,1,-0.3 } ,
+	{ 2,"Heavy Slam",-20,5, 0.6 },
+	{0 ,"Previous",NULL,NULL,0},
+};
+
 
 //effect functions
-
-void clrscr();
-void coolprint(char s[]);
-void coolprint(const char *s)
+//print 1by1 (mainly used in action field
+void coolprint(char []);
+void coolprint(char input[])
 {
 	int i = 0;
-	while (s != '\0') {
-		putchar(s[i]);
+	while (input[i] != '\0') {
+		printf("%c",input[i]);
 		Sleep(15);
 		i++;
 	}
 }
 
-//game system functions
-int updateRound(struct MsgField lastaction)
+//roll the fucking D20, remember to use variable to store results
+int diceRoll()
 {
-	system("cls");
-	for (int i = 0; i < 36; i++) {
-		putchar('-');
-	}
-	printf("\n"); listTargetData();
-	Sleep(1000);
-	listMsgField(lastaction);
-	Sleep(1000);
-	for (int i = 0; i < 36; i++) {
-		putchar('-');
-	}
-	printf("\n"); listUserData();
-	return 0;
+	int roll = rand() % 100; //roll the dice
+	printf("\nROLL THE DICE");
+	printf(" \n%5d\n", roll);
+	Sleep(1000); //see the result
+	return roll;
 }
 
 
@@ -238,18 +246,18 @@ int listUserData()
 	printf("\n%12d", cur_user.hitpoints);
 	printf("%18s%3d \n", "ATK", cur_user.atk);
 	printf("%30s%3d \n", "DEF", cur_user.def);
+	printf("%30s%3d \n", "HIT%", cur_user.hitC);
 	printf("%30s%3d \n", "CRIT%", cur_user.critC);
-	listActionField();
 }
 
 //actions field
 int listActionField()
 {
 	//generate boundary
-	for (int i = 0; i < BOUND__HIGH; i++) {
+	for (int i = 0; i < BOUND__HIGH + 1; i++) {
 		if (i == 0 || i == 5) {
 			for (int x = 0; x < 35; x++) {
-				printf("*"); if(x==34) printf("\n");
+				printf("*"); if (x == 34) printf("\n");
 			}
 		}//top&bottom
 		//printf("*"); 
@@ -258,16 +266,84 @@ int listActionField()
 	}
 	return 0;
 }
-//messages in field
-int listActions()
+
+//just for switching menus,lists until player stats, remember to print current menu
+int fastClear()
 {
-		printf(" %s\n %s",playerTurn.row1,playerTurn.row2 );
-		return 0;
+	system("cls");
+	for (int i = 0; i < 36; i++) {
+		putchar('-');
+	}
+	printf("\n"); listTargetData();
+
+	printf("\n\n");//blank field
+
+	for (int i = 0; i < 36; i++) {
+		putchar('-');
+	}
+	printf("\n"); listUserData();
+	return 0;
 }
-//crit action
-int usrAction_HitCritical(struct Usr *user ,struct Mob *target)
+
+int listAttackMove()
+{	//boundary
+	for (int i = 0; i < MENU_HEIGHT + 1; i++)
+	{
+		if (i == 0) {
+			for (int x = 0; x < 35; x++) {
+				printf("*"); if (x == 34) printf("\n");
+			}
+		}
+	}
+	printf("    SKILL        HIT%%BUFF  SKILL DAMAGE\n");
+	for (int x = 0; x < 3; x++) {
+		printf("%d%14s%10d%13d\n",AttackMove[x].moveID, AttackMove[x].skillName, AttackMove[x].buffHitC, AttackMove[x].buffBaseD+cur_user.atk);
+	}
+}
+int selectAttack()
 {
-	int damage = (user->atk * user->critD) - target->def ;
+	//attackmove menu
+	char selectSub3 = _getch();
+	if (selectSub3 == '1')
+	{
+		int roll = diceRoll();
+		//light attack move rotation
+		if (roll <= cur_user.critC) //within crit successful range
+			usrAttack_HitCritical(&AttackMove[0], &cur_target);
+		else if (roll <= cur_user.hitC)
+			usrAttack_Hit(&AttackMove[0], &cur_target);
+		else {
+			//moster action;
+			strcpy(actionResult.message1, "Nothing Happened.");
+			updateRound(actionResult);
+		}
+	}
+	else if (selectSub3== '2') {
+		int roll = diceRoll();
+		//light attack move rotation
+		if (roll <= cur_user.critC) //within crit successful range
+			usrAttack_HitCritical(&AttackMove[1], &cur_target);
+		else if (roll <= cur_user.hitC)
+			usrAttack_Hit(&AttackMove[1], &cur_target);
+		else {
+			//moster action;
+			strcpy(actionResult.message1, "Nothing Happened.");
+			updateRound(actionResult);
+		}
+	}
+	else if (selectSub3 == '0') {
+		fastClear();
+		listActionField();
+	}
+}
+
+
+
+
+//crit action
+int usrAttack_HitCritical(struct AttackAction *attackMove ,struct Mob *target)
+{
+	int damage = ((cur_user.atk + attackMove->buffBaseD) * (cur_user.critD + AttackMove->buffCritD)) - target->def; //(base atk+skill atk) x (player critD+move critD) 
 	//printf("\nCritical Hit");
 	//Sleep(1000);
 	target->hitpoints -= damage;
@@ -278,9 +354,9 @@ int usrAction_HitCritical(struct Usr *user ,struct Mob *target)
 	return 0;
 }
 
-int usrAction_Hit(struct Usr* user, struct Mob* target)
+int usrAttack_Hit(struct AttackAction* attackMove, struct Mob* target)
 {
-	int damage = user->atk - target->def;
+	int damage = ((cur_user.atk + attackMove->buffBaseD) - target->def); //base atk+skill atk
 	target->hitpoints -= damage;
 	char *dmgnum = ("%d damage", damage);
 	strcpy(actionResult.message1, "Solid Hit! \n");
@@ -289,9 +365,27 @@ int usrAction_Hit(struct Usr* user, struct Mob* target)
 	return 0;
 }
 
+//game system functions
+int updateRound(struct MsgField lastaction)
+{
+	system("cls");
+	for (int i = 0; i < 36; i++) {
+		putchar('-');
+	}
+	printf("\n"); listTargetData();
+	Sleep(1000);
+	listMsgField(lastaction);
+	Sleep(1000);
+	for (int i = 0; i < 36; i++) {
+		putchar('-');
+	}
+	printf("\n"); listUserData(); listActionField();
+	return 0;
+}
 
 int main()
 {
+	
 	srand((unsigned)time(NULL)); //roll the fucking D20
 	//testing
 	//init battle
@@ -300,32 +394,22 @@ int main()
 	listTargetData();
 	writeUserData(userdefault, USRSAVE);
 	readUserData(USRSAVE);
-	listUserData();
-
-	do {
-		//select options
-		rewind(stdin);
-		_getch();
-		rewind(stdin);
-		//attack rotation
-		int roll = rand() % 100; //roll the dice
-		printf("\nROLL THE DICE");
-		printf(" \n%5d\n", roll);
-		Sleep(1000); //see the result
-
-		if (roll <= cur_user.critC) //within crit successful range
-			usrAction_HitCritical(&cur_user, &cur_target);
-		else if (roll <= cur_user.hitC)
-			usrAction_Hit(&cur_user, &cur_target);
-		else {
-			//moster action;
-			strcpy(actionResult.message1, "Nothing Happened.");
-			updateRound(actionResult);
+	listUserData(); listActionField();
+	//start loop
+	while (1) {
+		//select options 1.item 2.retreat 3.attack 4.skill
+		//open corresponding menu
+		char select = _getch();
+		switch (select) {
+		case '1':
+		case '2':
+		case '3':fastClear(); listAttackMove(); selectAttack(); break;
+		case '4':break;
 		}
 
-		if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) break;
 
-	} while (1);
+		if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) return 0;
+	}
 	//battle resolved
 	system("pause");
 	return 0;
