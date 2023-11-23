@@ -5,12 +5,15 @@
 #include <conio.h>
 #include <Windows.h>
 
+#include "itemActions.h"
+
+
 //data file locations
 #define MOBSTATS "..\\MobStats.bin"
 #define USRSAVE  "..\\UserSave.bin"
 //entity info
 #define TARGET_ATTR 5
-#define DEFAULT_HP 20
+#define DEFAULT_HP 40
 #define DEFAULT_ATK 5
 #define DEFAULT_CRITC 60
 #define DEFAULT_DEF 2
@@ -20,18 +23,24 @@
 #define BOUND__HIGH 5 
 #define MENU_HEIGHT 6
 
+//time counters
+short Round = 1;
+short ItemEffect[10];
+
 //declare structs
 // USER structure
 struct Usr 
 {
 	char UsrName[50];
 	int hitpoints;
+	int hitpoints_max;
 	int atk;
 	int hitC;
 	int critC;
 	float critD;
 	int def;
-}userdefault = { "John Doe",20,5,60,30,1.4,2 };
+	int totalExp;
+}userdefault = { "John Doe",20,60,5,60,30,1.4,2,0 };
 //target structure
 struct Mob 
 {
@@ -41,10 +50,13 @@ struct Mob
 	int critC;
 	float critD;
 	int def;
-}targetdefault = {"dummy",DEFAULT_HP,DEFAULT_ATK,DEFAULT_CRITC,DEFAULT_DEF};
+	int dropGold;
+	int dropExp;
+}targetdefault = {"dummy",DEFAULT_HP,DEFAULT_ATK,DEFAULT_CRITC,DEFAULT_DEF,0,10};
 
 struct Mob cur_target;//data of the current target
 struct Usr cur_user;//this is you
+
 
 //middle message field
 struct MsgField {
@@ -127,7 +139,8 @@ void writeUserData(struct Usr toSave, const char* filename)
 			putchar('-');
 			Sleep(20);
 		}
-		printf("\n");
+		//printf("\n");
+		printf("\r");
 	}
 
 	else printf("save error\n");
@@ -193,7 +206,8 @@ void writeTargetData(struct Mob input , const char *filename)
 			putchar('-');
 			Sleep(20);
 		}
-		printf("\n");
+		//printf("\n");
+		printf("\r");
 	}
 
 	else printf("save error\n");
@@ -239,7 +253,7 @@ void readTargetData(const char *filename)
 int listTargetData() {
 	printf("%s\n", cur_target.MobName);
 	printf("Hitpoints: "); 
-	for (int i = 0; i < cur_target.hitpoints; i++) {
+	for (int i = 0; i < cur_target.hitpoints; i+=2) {
 		printf("|");
 		Sleep(20);
 	}
@@ -251,9 +265,10 @@ int listTargetData() {
 //central message field
 int listMsgField(struct MsgField message)
 {
+	printf("Round %3d\n", Round);
 	printf("%s\n",message.message1);
 	printf("\r"); 
-	for (int i = 0; i < 35; i++) {
+	for (int i = 0; i < 15; i++) {
 		printf(" ");
 		Sleep(10);
 	};
@@ -300,8 +315,14 @@ int fastClear()
 	for (int i = 0; i < 36; i++) {
 		putchar('-');
 	}
-	printf("\n"); listTargetData();
-
+	printf("\n");
+	//listTargetData but no sleep
+	printf("%s\n", cur_target.MobName);
+	printf("Hitpoints: ");
+	for (int i = 0; i < cur_target.hitpoints; i++) {
+		printf("|");
+	}
+	printf("%3d\n", cur_target.hitpoints);
 	printf("\n\n");//blank field
 
 	for (int i = 0; i < 36; i++) {
@@ -363,6 +384,54 @@ int selectAttack()
 	}
 }
 
+int listInvMenu()
+{//boundary
+	for (int x = 0; x < 35; x++) printf("*"); printf("\n");
+	printf("             ITEM        INVENTORY\n");
+	for (int i = 0; i < 10; i++) {
+		if (invHold[i][0] == 0) continue;
+		printf("%d%16s", util[i].item_ID,util[i].item_Name); //1,2
+		//printf("%d", util[i].itemBuff_HP); //4
+		//printf("%d", util[i].itemBuff_atk); //5
+		//printf("%d", util[i].itemBuff_hitC); //6
+		//printf("%d", util[i].itemBuff_critC); //7
+		//printf("%d", util[i].itemBuff_critD); //8
+		//printf("%d", util[i].itemBuff_def); //9
+		
+		printf("%14d / %3d",invHold[i][0],invHold[i][1]);
+		printf("\n");
+	}
+	return 0;
+}
+int selectItem()
+{
+	int opt=_getch();
+	opt -= '0'; //nasty trick to convert
+	if (opt == 9) {
+		fastClear(); listActionField();
+	}
+	else {
+		printf("\n%s", util[opt].itemDescription);
+		printf("\n            USE (y/n)");
+	}
+	char sel = _getch();
+	if (sel == 'y') {
+		cur_user.hitpoints += util[opt].itemBuff_HP; 
+		if (cur_user.hitpoints > cur_user.hitpoints_max) cur_user.hitpoints = cur_user.hitpoints_max; //no overheals
+		cur_user.atk += util[opt].itemBuff_atk;
+		cur_user.hitC += util[opt].itemBuff_hitC;
+		cur_user.critC += util[opt].itemBuff_critC;
+		cur_user.critD += util[opt].itemBuff_critD;
+		cur_user.def += util[opt].itemBuff_def;
+		invHold[opt][0]--;
+		ItemEffect[opt] += 2;
+		strcpy(actionResult.message1, "You used an Item");
+		strcpy(actionResult.message2, util[opt].item_Name);
+		updateRound(actionResult);
+	}
+	else if (sel == 'n') { fastClear(); listInvMenu(); selectItem(); }
+	return 0;
+}
 //crit action
 int usrAttack_HitCritical(struct AttackAction *attackMove ,struct Mob *target)
 {
@@ -408,38 +477,63 @@ int updateRound(struct MsgField lastaction)
 	for (int i = 0; i < 36; i++) {
 		putchar('-');
 	}
+	for (int i = 0; i < 10; i++) { //check for item duration
+		if (ItemEffect[i] - 1 == 0) {
+			ItemEffect[i]--;
+			cur_user.hitpoints -= util[i].itemBuff_HP;
+			cur_user.atk -= util[i].itemBuff_atk;
+			cur_user.hitC -= util[i].itemBuff_hitC;
+			cur_user.critC -= util[i].itemBuff_critC;
+			cur_user.critD -= util[i].itemBuff_critD;
+			cur_user.def -= util[i].itemBuff_def;
+		}
+		else ItemEffect[i]--;
+	}
 	printf("\n"); listUserData(); listActionField();
 	return 0;
 }
 
 int main()
 {
-	
+	generateItemsList();
+	Items cur_inv[10];
+	readItemsList(&cur_inv);
+	for (int i = 0; i < 10; i++) {
+		invHold[i][0] += 2;
+		if (invHold[i][0] > invHold[i][1]) invHold[i][0] = invHold[i][1];
+	}
 	srand((unsigned)time(NULL)); //roll the fucking D20
-	//testing
-	//init battle
-	//writeTargetData(targetdefault, MOBSTATS);
-	readTargetData(MOBSTATS);
-	listTargetData();
-	//	writeUserData(userdefault, USRSAVE);
-	readUserData(USRSAVE);
-	listUserData(); listActionField();
-	//start loop
-	while (1) {
-		//select options 1.item 2.retreat 3.attack 4.skill
-		//open corresponding menu
-		char select = _getch();
-		switch (select) {
-		case '1':
-		case '2':
-		case '3':fastClear(); listAttackMove(); selectAttack(); break;
-		case '4':break;
+	Round = 1;
+		//init battle
+		writeTargetData(targetdefault, MOBSTATS);
+		readTargetData(MOBSTATS);
+		listTargetData();
+		writeUserData(userdefault, USRSAVE);
+		readUserData(USRSAVE); 
+		
+		//setting up the field
+		listUserData(); listActionField(); 
+	
+		//start loop
+		while (1) {
+			//select options 1.item 2.retreat 3.attack 4.skill
+			//open corresponding menu
+			char select = _getch();
+			switch (select) {
+			case '1':fastClear(); listInvMenu();selectItem();break;
+			case '2':break;
+			case '3':fastClear(); listAttackMove(); selectAttack(); break;
+			case '4':break;
+			}
+			//round timer
+			if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) return 0;
+			Round++;
+			
 		}
 
-
-		if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) return 0;
+		
+		//battle resolved
+		//saveInv(cur_inv);
+		system("pause");
+		return 0;
 	}
-	//battle resolved
-	system("pause");
-	return 0;
-}
