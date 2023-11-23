@@ -22,7 +22,8 @@
 
 //declare structs
 // USER structure
-struct Usr {
+struct Usr 
+{
 	char UsrName[50];
 	int hitpoints;
 	int atk;
@@ -32,7 +33,8 @@ struct Usr {
 	int def;
 }userdefault = { "John Doe",20,5,60,30,1.4,2 };
 //target structure
-struct Mob {
+struct Mob 
+{
 	char MobName[50];
 	int hitpoints;
 	int atk;
@@ -150,7 +152,19 @@ void readUserData(const char* filename)
 	long fileSize = ftell(file);
 	rewind(file);
 	//save into global struct: current target
-	fread(&cur_user, sizeof(struct Usr), 1, file);
+	int flag = 0;
+	flag = fread(&cur_user, sizeof(struct Usr), 1, file);
+	if (flag)
+	{
+		printf("\nload successful");
+		//clean up the save message
+		Sleep(500); printf("\r");
+		for (int i = 0; i < 36; i++) {
+			putchar('-');
+			Sleep(20);
+		}
+		printf("\n");
+	}
 	return 0;
 }
 
@@ -205,7 +219,19 @@ void readTargetData(const char *filename)
 	long fileSize = ftell(file);
 	rewind(file);
 	//save into global struct: current target
-	fread(&cur_target, sizeof(struct Mob), 1, file);
+	int flag = 0;
+	flag = fread(&cur_target, sizeof(struct Mob), 1, file);
+	if (flag)
+	{
+		printf("\nload successful");
+		//clean up the save message
+		Sleep(500); printf("\r");
+		for (int i = 0; i < 36; i++) {
+			putchar('-');
+			Sleep(20);
+		}
+		printf("\n");
+	}
 	return 0;
 }
 
@@ -343,10 +369,13 @@ int usrAttack_HitCritical(struct AttackAction *attackMove ,struct Mob *target)
 	int damage = ((cur_user.atk + attackMove->buffBaseD) * (cur_user.critD + AttackMove->buffCritD)) - target->def; //(base atk+skill atk) x (player critD+move critD) 
 	//printf("\nCritical Hit");
 	//Sleep(1000);
-	target->hitpoints -= damage;
-	char* dmgnum = ("%d damage", damage);
-	strcpy(actionResult.message1, "Critical Hit!! \n");
-	strcpy(actionResult.message2, &dmgnum);
+	if (damage <= 0) { damage = 0; strcpy(actionResult.message1, "Ineffective Hit! \n"); }
+	else {
+		target->hitpoints -= damage;
+		char* dmgnum = ("%d damage", damage);
+		strcpy(actionResult.message1, "Critical Hit!! \n");
+		strcpy(actionResult.message2, &dmgnum);
+	}
 	updateRound(actionResult);
 	return 0;
 }
@@ -354,10 +383,13 @@ int usrAttack_HitCritical(struct AttackAction *attackMove ,struct Mob *target)
 int usrAttack_Hit(struct AttackAction* attackMove, struct Mob* target)
 {
 	int damage = ((cur_user.atk + attackMove->buffBaseD) - target->def); //base atk+skill atk
-	target->hitpoints -= damage;
-	char *dmgnum = ("%d damage", damage);
-	strcpy(actionResult.message1, "Solid Hit! \n");
-	strcpy(actionResult.message2, &dmgnum);
+	if (damage <= 0) { damage = 0; strcpy(actionResult.message1, "Ineffective Hit! \n"); }
+	else {
+		target->hitpoints -= damage;
+		char* dmgnum = ("%d damage", damage);
+		strcpy(actionResult.message1, "Solid Hit! \n");
+		strcpy(actionResult.message2, &dmgnum);
+	}
 	updateRound(actionResult);
 	return 0;
 }
@@ -386,10 +418,10 @@ int main()
 	srand((unsigned)time(NULL)); //roll the fucking D20
 	//testing
 	//init battle
-	writeTargetData(targetdefault, MOBSTATS);
+	//writeTargetData(targetdefault, MOBSTATS);
 	readTargetData(MOBSTATS);
 	listTargetData();
-	writeUserData(userdefault, USRSAVE);
+	//	writeUserData(userdefault, USRSAVE);
 	readUserData(USRSAVE);
 	listUserData(); listActionField();
 	//start loop
