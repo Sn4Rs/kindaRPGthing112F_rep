@@ -9,7 +9,7 @@
 
 
 //data file locations
-#define MOBSTATS "..\\MobStats.bin"
+#define S_DUMMY "..\\DummyStats.bin"
 #define USRSAVE  "..\\UserSave.bin"
 //entity info
 #define TARGET_ATTR 5
@@ -31,16 +31,18 @@ short ItemEffect[10];
 // USER structure
 struct Usr 
 {
-	char UsrName[50];
-	int hitpoints;
-	int hitpoints_max;
-	int atk;
-	int hitC;
-	int critC;
-	float critD;
-	int def;
-	int totalExp;
-}userdefault = { "John Doe",20,60,5,60,30,1.4,2,0 };
+	char UsrName[50]; //1
+	int hitpoints; //2
+	int hitpoints_max; //3
+	int atk; //4
+	int hitC; //5
+	int critC; //6
+	float critD; //7
+	int def; //8
+	int totalExp; //9
+	int bpcurrency; //10
+	int bpInv[10]; //11
+}userdefault = { "John Doe",20,60,5,60,30,1.4,2,0,200 };
 //target structure
 struct Mob 
 {
@@ -113,7 +115,6 @@ int diceRoll()
 	return roll;
 }
 
-
 //save a Usr structure to a file (can predefine)
 void writeUserData(struct Usr toSave, const char* filename)
 {
@@ -178,6 +179,7 @@ void readUserData(const char* filename)
 		}
 		printf("\n");
 	}
+	for (int i = 0; i < 10; i++) invHold[i][0] = cur_user.bpInv[i]; //load inventory items
 	return 0;
 }
 
@@ -424,7 +426,7 @@ int selectItem()
 		cur_user.critD += util[opt].itemBuff_critD;
 		cur_user.def += util[opt].itemBuff_def;
 		invHold[opt][0]--;
-		ItemEffect[opt] += 2;
+		ItemEffect[opt] += 2; //lasts for 2 rounds
 		strcpy(actionResult.message1, "You used an Item");
 		strcpy(actionResult.message2, util[opt].item_Name);
 		updateRound(actionResult);
@@ -477,17 +479,18 @@ int updateRound(struct MsgField lastaction)
 	for (int i = 0; i < 36; i++) {
 		putchar('-');
 	}
-	for (int i = 0; i < 10; i++) { //check for item duration
-		if (ItemEffect[i] - 1 == 0) {
-			ItemEffect[i]--;
-			cur_user.hitpoints -= util[i].itemBuff_HP;
+	//check for item duration
+	for (int i = 0; i < 10; i++) {
+		ItemEffect[i]--;
+		if (cur_user.hitpoints > cur_user.hitpoints_max) cur_user.hitpoints = cur_user.hitpoints_max; //no overheals
+		if (ItemEffect[i]== 0) {//end effect
+			//cur_user.hitpoints -= util[i].itemBuff_HP;
 			cur_user.atk -= util[i].itemBuff_atk;
 			cur_user.hitC -= util[i].itemBuff_hitC;
 			cur_user.critC -= util[i].itemBuff_critC;
 			cur_user.critD -= util[i].itemBuff_critD;
 			cur_user.def -= util[i].itemBuff_def;
 		}
-		else ItemEffect[i]--;
 	}
 	printf("\n"); listUserData(); listActionField();
 	return 0;
@@ -496,6 +499,12 @@ int updateRound(struct MsgField lastaction)
 int main()
 {
 	generateItemsList();
+	writeTargetData(targetdefault, S_DUMMY);
+	readTargetData(S_DUMMY);
+	listTargetData();
+	writeUserData(userdefault, USRSAVE);
+	readUserData(USRSAVE);
+	
 	Items cur_inv[10];
 	readItemsList(&cur_inv);
 	for (int i = 0; i < 10; i++) {
@@ -504,13 +513,7 @@ int main()
 	}
 	srand((unsigned)time(NULL)); //roll the fucking D20
 	Round = 1;
-		//init battle
-		writeTargetData(targetdefault, MOBSTATS);
-		readTargetData(MOBSTATS);
-		listTargetData();
-		writeUserData(userdefault, USRSAVE);
-		readUserData(USRSAVE); 
-		
+		//init battle	
 		//setting up the field
 		listUserData(); listActionField(); 
 	
@@ -528,10 +531,7 @@ int main()
 			//round timer
 			if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) return 0;
 			Round++;
-			
 		}
-
-		
 		//battle resolved
 		//saveInv(cur_inv);
 		system("pause");

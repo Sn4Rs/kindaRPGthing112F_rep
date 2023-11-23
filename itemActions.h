@@ -16,32 +16,32 @@ typedef struct {
 	
 }Items;
 Items util[10] = {
-{0,"Heal(S)","Heals for 8",8,0,0,0,0,0,5},
-{1,"Heal(M)","Heals for 15",15,0,0,0,0,0,3},
-{2,"Heal(L)","Heals for 28",28,0,0,0,0,0,2},
-{3,"Crit Juice","Bonus Hit / Crit Performance\n\
+{0,"Previous","",0,0,0,0,0,0,0},
+{1,"Heal(S)","Heals for 8",8,0,0,0,0,0,5},
+{2,"Heal(M)","Heals for 15",15,0,0,0,0,0,3},
+{3,"Heal(L)","Heals for 28",28,0,0,0,0,0,2},
+{4,"Crit Juice","Bonus Hit / Crit Performance\n\
 Hit%+10 Crit%+20 CritDmg+0.4x",0,0,10,20,0.4,0,5},
-{4,"Slam Juice","Slapp dem Cheeks Harder \n\
+{5,"Slam Juice","Slapp dem Cheeks Harder \n\
 Base Attack+8  Hit%+15 ",0,8,15,0,0,0,5},
-{5,"Armor Plate","Blocks Some Damage\n  ",0,0,0,0,0,15,4},
-{6,"Emergency Armor","Blocks a Lot of Damage, Very Heavy",0,0,0,0,0,40,1},
-{7,"J U I C C","Why Are Those All Prime Numbers???",7,13,17,19,2.3,29,1},
-{8,"DewRitos","The Ultimate Gamer Food\n Crazy Heals & Crit Boost", 357,36,0,42,0,0,1},
-{9,"Previous","",0,0,0,0,0,0,0},
+{6,"Armor Plate","Blocks Some Damage\n  ",0,0,0,0,0,15,4},
+{7,"Emergency Armor","Blocks a Lot of Damage, Very Heavy",0,0,0,0,0,40,1},
+{8,"J U I C C","Why Are Those All Prime Numbers???",7,13,17,19,2.3,29,1},
+{9,"DewRitos","The Ultimate Gamer Food\n Crazy Heals & Crit Boost", 357,36,0,42,0,0,1},
 };
 
 int invHold[10][2] = //0.current hold 1. max carry 
 {
-	{0,5},
-	{0,3},
-	{0,2},
-	{0,5},
-	{0,5},
-	{0,4},
-	{0,1},
-	{0,1},
-	{0,1},
-	{0,9999},
+	{1,0},//0 is empty, gold will be in character sheet
+	{0,5},//1
+	{0,3},//2
+	{0,2},//3
+	{0,5},//4
+	{0,5},//5
+	{0,4},//6
+	{0,1},//7
+	{0,1},//8
+	{0,1},//9
 };
 
 //export item list
