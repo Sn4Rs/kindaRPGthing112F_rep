@@ -32,7 +32,7 @@ Base Attack+8  Hit%+15 ",0,8,15,0,0,0,5},
 
 int invHold[10][2] = //0.current hold 1. max carry 
 {
-	{1,0},//0 is empty, gold will be in character sheet
+	{9999,9999},//0 is empty, gold will be in character sheet
 	{0,5},//1
 	{0,3},//2
 	{0,2},//3

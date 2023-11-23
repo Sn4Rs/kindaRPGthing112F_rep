@@ -42,7 +42,7 @@ struct Usr
 	int totalExp; //9
 	int bpcurrency; //10
 	int bpInv[10]; //11
-}userdefault = { "John Doe",20,60,5,60,30,1.4,2,0,200 };
+}userdefault = { "John Doe",20,20,5,60,30,1.4,2,0,200 };
 //target structure
 struct Mob 
 {
@@ -64,8 +64,9 @@ struct Usr cur_user;//this is you
 struct MsgField {
 	char* message1[30];
 	char* message2[30];
-}genericmsg = { DUMMYTEXT,DUMMYTEXT };
-struct MsgField blankmsg = { BLANKLINE,BLANKLINE };
+	char* message3[40];
+}genericmsg = { DUMMYTEXT,DUMMYTEXT,DUMMYTEXT };
+struct MsgField blankmsg = { BLANKLINE,BLANKLINE,BLANKLINE };
 struct MsgField actionResult;
 
 
@@ -275,6 +276,7 @@ int listMsgField(struct MsgField message)
 		Sleep(10);
 	};
 	printf("%s\n", message.message2);
+	printf("%s\n", message.message3);
 	return 0;
 }
 
@@ -327,10 +329,21 @@ int fastClear()
 	printf("%3d\n", cur_target.hitpoints);
 	printf("\n\n");//blank field
 
+	//list user data but no sleep
 	for (int i = 0; i < 36; i++) {
 		putchar('-');
 	}
-	printf("\n"); listUserData();
+	printf("\n"); 
+	printf("%20s", cur_user.UsrName);
+	printf("\nHitpoints ");
+	for (int i = 0; i < cur_user.hitpoints; i += 2) {
+		printf("|");
+	}
+	printf("\n%12d", cur_user.hitpoints);
+	printf("%18s%3d \n", "ATK", cur_user.atk);
+	printf("%30s%3d \n", "DEF", cur_user.def);
+	printf("%30s%3d \n", "HIT%", cur_user.hitC);
+	printf("%30s%3d \n", "CRIT%", cur_user.critC);
 	return 0;
 }
 
@@ -391,7 +404,7 @@ int listInvMenu()
 	for (int x = 0; x < 35; x++) printf("*"); printf("\n");
 	printf("             ITEM        INVENTORY\n");
 	for (int i = 0; i < 10; i++) {
-		if (invHold[i][0] == 0) continue;
+		if (invHold[i][0] <= 0) continue;
 		printf("%d%16s", util[i].item_ID,util[i].item_Name); //1,2
 		//printf("%d", util[i].itemBuff_HP); //4
 		//printf("%d", util[i].itemBuff_atk); //5
@@ -409,17 +422,21 @@ int selectItem()
 {
 	int opt=_getch();
 	opt -= '0'; //nasty trick to convert
-	if (opt == 9) {
-		fastClear(); listActionField();
+	if (opt == 0) {
+		fastClear(); listActionField(); return NULL; //back to root menu, rerun loop
 	}
 	else {
+		if (invHold[opt][0] == 0) { //none left
+			printf("\nBut What Are You Looking For?");
+			Sleep(1500);
+			fastClear(); listInvMenu(); selectItem();
+		}
 		printf("\n%s", util[opt].itemDescription);
 		printf("\n            USE (y/n)");
 	}
 	char sel = _getch();
 	if (sel == 'y') {
 		cur_user.hitpoints += util[opt].itemBuff_HP; 
-		if (cur_user.hitpoints > cur_user.hitpoints_max) cur_user.hitpoints = cur_user.hitpoints_max; //no overheals
 		cur_user.atk += util[opt].itemBuff_atk;
 		cur_user.hitC += util[opt].itemBuff_hitC;
 		cur_user.critC += util[opt].itemBuff_critC;
@@ -429,6 +446,12 @@ int selectItem()
 		ItemEffect[opt] += 2; //lasts for 2 rounds
 		strcpy(actionResult.message1, "You used an Item");
 		strcpy(actionResult.message2, util[opt].item_Name);
+		//no overheals
+		if (cur_user.hitpoints > cur_user.hitpoints_max) {
+			cur_user.hitpoints = cur_user.hitpoints_max; 
+			strcpy(actionResult.message1, "You Healed");
+			strcpy(actionResult.message2, "...But You Cannot Overheal");
+		}
 		updateRound(actionResult);
 	}
 	else if (sel == 'n') { fastClear(); listInvMenu(); selectItem(); }
@@ -468,6 +491,7 @@ int usrAttack_Hit(struct AttackAction* attackMove, struct Mob* target)
 //game system functions
 int updateRound(struct MsgField lastaction)
 {
+	Round++;
 	system("cls");
 	for (int i = 0; i < 36; i++) {
 		putchar('-');
@@ -482,7 +506,6 @@ int updateRound(struct MsgField lastaction)
 	//check for item duration
 	for (int i = 0; i < 10; i++) {
 		ItemEffect[i]--;
-		if (cur_user.hitpoints > cur_user.hitpoints_max) cur_user.hitpoints = cur_user.hitpoints_max; //no overheals
 		if (ItemEffect[i]== 0) {//end effect
 			//cur_user.hitpoints -= util[i].itemBuff_HP;
 			cur_user.atk -= util[i].itemBuff_atk;
@@ -490,6 +513,7 @@ int updateRound(struct MsgField lastaction)
 			cur_user.critC -= util[i].itemBuff_critC;
 			cur_user.critD -= util[i].itemBuff_critD;
 			cur_user.def -= util[i].itemBuff_def;
+			strcpy(actionResult.message3, "Some Item Effects Have Worn Off");
 		}
 	}
 	printf("\n"); listUserData(); listActionField();
@@ -530,7 +554,6 @@ int main()
 			}
 			//round timer
 			if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) return 0;
-			Round++;
 		}
 		//battle resolved
 		//saveInv(cur_inv);
