@@ -1,6 +1,6 @@
 #pragma once
-
 #define ITEMFILE "..\\ItemsList.bin"
+
 
 typedef struct {
 	char item_ID; //1
@@ -13,8 +13,8 @@ typedef struct {
 	float itemBuff_critD; //8
 	int itemBuff_def; //9
 	int carryMax; //10 not listed
-	
 }Items;
+
 Items util[10] = {
 {0,"Previous","",0,0,0,0,0,0,0},
 {1,"Heal(S)","Heals for 8",8,0,0,0,0,0,5},
@@ -43,6 +43,8 @@ int invHold[10][2] = //0.current hold 1. max carry
 	{0,1},//8
 	{0,1},//9
 };
+
+
 
 //export item list
 int generateItemsList() //init generation
@@ -109,7 +111,6 @@ int saveInv(currentInv) //save player inventory
 	fclose(file);
 	return 0;
 }
-
 
 Items* readItemsList(Items* inv)
 {
