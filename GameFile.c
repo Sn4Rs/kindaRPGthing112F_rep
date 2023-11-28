@@ -7,23 +7,13 @@
 
 #include "BattleMechanics.h"
 
-Mob targetdefault = { "dummy",DEFAULT_HP,DEFAULT_ATK,DEFAULT_CRITC,DEFAULT_DEF,0,10 };
+Mob targetdefault = { "dummy",DEFAULT_HP,DEFAULT_ATK,DEFAULT_CRITC,1,DEFAULT_DEF,0,10,1 };
 Usr userdefault = { "John Doe",20,20,5,60,30,1.4,2,0,200 };
 
-//effect functions
-//print 1by1 (mainly used in action field
-void coolprint(char input[])
-{
-	int i = 0;
-	while (input[i] != '\0') {
-		printf("%c",input[i]);
-		Sleep(15);
-		i++;
-	}
-}
 
 int main()
 {
+	//for testing, will remove upon completion
 	generateItemsList();
 	writeTargetData(targetdefault, S_DUMMY);
 	readTargetData(S_DUMMY);
@@ -37,6 +27,8 @@ int main()
 		invHold[i][0] += 2;
 		if (invHold[i][0] > invHold[i][1]) invHold[i][0] = invHold[i][1];
 	}
+
+	//beta starts here
 	srand((unsigned)time(NULL)); //roll the fucking D20
 	Round = 1;
 		//init battle	
@@ -51,12 +43,12 @@ int main()
 			char select = _getch();
 			switch (select) {
 			case '1':fastClear(); listInvMenu();selectItem();break;
-			case '2':break;
+			case '2':checkRetreat(&cur_target); break;
 			case '3':fastClear(); listAttackMove(); selectAttack(); break;
 			case '4':break;
 			}
 			//round timer
-			if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0) return 0;
+			if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0 || whiteFlag==1) return 0;
 		}
 		//battle resolved
 		//saveInv(cur_inv);

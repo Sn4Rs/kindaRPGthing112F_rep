@@ -11,7 +11,8 @@
 //time counters
 short Round = 1;
 short ItemEffect[10];
-
+//retreat option
+int whiteFlag = 0;
 //middle message field
 typedef struct  {
 	char* message1[30];
@@ -45,6 +46,17 @@ struct AttackAction AttackMove[3] = {
 	{0 ,"Previous",NULL,NULL,0},
 };
 
+//effect functions
+//print 1by1 (mainly used in action field
+void coolprint(char input[])
+{
+	int i = 0;
+	while (input[i] != '\0') {
+		printf("%c", input[i]);
+		Sleep(15);
+		i++;
+	}
+}
 
 
 //roll the fucking D20, remember to use variable to store results
@@ -265,6 +277,31 @@ int selectItem()
 	}
 	return 0;
 }
+
+int checkRetreat(Mob *target) 
+{
+	printf("\nYou Check Your Surroundings,\nThere May Be a Way Out.");
+	printf("\n            Attempt (y/n)");
+	char opt;
+	while (opt = _getch()) {
+		if (opt == 'y') {
+			if (target->allowRetreat == 1) {
+				whiteFlag = 1;
+				strcpy(actionResult.message2, "You Escaped From The Battle");
+				updateRound(actionResult); return 0;
+			}
+			else {
+				strcpy(actionResult.message1, "The Entrance is Blocked,");
+				strcpy(actionResult.message2, "There is No Escape.");
+				updateRound(actionResult); return 0;
+			}
+		}
+		else if (opt == 'n') {
+			fastClear(); listActionField(); return 0;
+		}
+		else rewind(stdin);
+	}
+}
 //crit action
 int usrAttack_HitCritical(struct AttackAction* attackMove, Mob* target)
 {
@@ -443,4 +480,3 @@ int readTargetData(const char* filename)
 	fread(&cur_target, sizeof(Mob), 1, file);
 	return 0;
 }
-

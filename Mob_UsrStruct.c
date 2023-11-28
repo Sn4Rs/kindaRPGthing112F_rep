@@ -36,6 +36,7 @@ typedef struct
 	int def;
 	int dropGold;
 	int dropExp;
+	int allowRetreat;
 }Mob;
 
 
