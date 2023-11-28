@@ -13,13 +13,14 @@ short Round = 1;
 short ItemEffect[10];
 
 //middle message field
-struct MsgField {
+typedef struct  {
 	char* message1[30];
 	char* message2[30];
 	char* message3[40];
-}genericmsg = { DUMMYTEXT,DUMMYTEXT,DUMMYTEXT };
-struct MsgField blankmsg = { BLANKLINE,BLANKLINE,BLANKLINE };
-struct MsgField actionResult;
+}MsgField;
+MsgField genericmsg = { DUMMYTEXT,DUMMYTEXT,DUMMYTEXT };
+MsgField blankmsg = { BLANKLINE,BLANKLINE,BLANKLINE };
+MsgField actionResult;
 
 
 //action msg struct
@@ -71,7 +72,7 @@ int listTargetData() {
 }
 
 //central message field
-int listMsgField(struct MsgField message)
+int listMsgField(MsgField message)
 {
 	printf("Round %3d\n", Round);
 	printf("%s\n", message.message1);
@@ -296,7 +297,7 @@ int usrAttack_Hit(struct AttackAction* attackMove, Mob* target)
 }
 
 //game system functions
-int updateRound(struct MsgField lastaction)
+int updateRound(MsgField lastaction)
 {
 	Round++;
 	//check for item duration

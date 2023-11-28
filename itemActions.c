@@ -1,4 +1,5 @@
 #pragma once
+#include <Windows.h>
 #define ITEMFILE "..\\ItemsList.bin"
 
 
@@ -47,7 +48,7 @@ int invHold[10][2] = //0.current hold 1. max carry
 
 
 //export item list
-int generateItemsList() //init generation
+void generateItemsList() //init generation
 {
 	//create pointer for file
 	FILE* file = fopen(ITEMFILE, "wb"); //open input file code, write binary
