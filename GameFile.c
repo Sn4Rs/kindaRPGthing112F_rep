@@ -29,7 +29,7 @@ short ItemEffect[10];
 
 //declare structs
 // USER structure
-struct Usr 
+typedef struct
 {
 	char UsrName[50]; //1
 	int hitpoints; //2
@@ -42,9 +42,10 @@ struct Usr
 	int totalExp; //9
 	int bpcurrency; //10
 	int bpInv[10]; //11
-}userdefault = { "John Doe",20,20,5,60,30,1.4,2,0,200 };
+}Usr;
+Usr userdefault = { "John Doe",20,20,5,60,30,1.4,2,0,200 };
 //target structure
-struct Mob 
+typedef struct
 {
 	char MobName[50];
 	int hitpoints;
@@ -54,39 +55,42 @@ struct Mob
 	int def;
 	int dropGold;
 	int dropExp;
-}targetdefault = {"dummy",DEFAULT_HP,DEFAULT_ATK,DEFAULT_CRITC,DEFAULT_DEF,0,10};
+}Mob;
+Mob targetdefault = { "dummy",DEFAULT_HP,DEFAULT_ATK,DEFAULT_CRITC,DEFAULT_DEF,0,10 };
 
-struct Mob cur_target;//data of the current target
-struct Usr cur_user;//this is you
+Mob cur_target;//data of the current target
+Usr cur_user;//this is you
 
 
 //middle message field
-struct MsgField {
+typedef struct {
 	char* message1[30];
 	char* message2[30];
 	char* message3[40];
-}genericmsg = { DUMMYTEXT,DUMMYTEXT,DUMMYTEXT };
-struct MsgField blankmsg = { BLANKLINE,BLANKLINE,BLANKLINE };
-struct MsgField actionResult;
+}MsgField;
+MsgField genericmsg = { DUMMYTEXT,DUMMYTEXT,DUMMYTEXT };
+MsgField blankmsg = { BLANKLINE,BLANKLINE,BLANKLINE };
+MsgField actionResult;
 
 
 //action msg struct
-struct Actions {
+typedef struct {
 	char row1[30];
 	char row2[30];
-}playerTurn=
+}Actions;
+Actions playerTurn =
 {"1.ITEM          2.RETREAT",
   "3.ATTACK        4.SKILL"};
 
 //Attack Actions
-struct AttackAction {
+typedef struct{
 	int moveID;
 	char skillName[15];
 	int buffHitC; //add to hitC
 	int buffBaseD; //add to base damage
 	float buffCritD; //add to crit damage
-};
-struct AttackAction AttackMove[3] = {
+}AttackAction;
+ AttackAction AttackMove[3] = {
 	{ 1,"Fast Attack",10,1,-0.3 } ,
 	{ 2,"Heavy Slam",-20,5, 0.6 },
 	{0 ,"Previous",NULL,NULL,0},
@@ -117,7 +121,7 @@ int diceRoll()
 }
 
 //save a Usr structure to a file (can predefine)
-void writeUserData(struct Usr toSave, const char* filename)
+void writeUserData(Usr toSave, const char* filename)
 {
 	//create pointer for file
 	FILE* file = fopen(filename, "wb"); //open input file code, write binary
@@ -130,7 +134,7 @@ void writeUserData(struct Usr toSave, const char* filename)
 
 	//write out saved
 	int flag = 0;
-	flag = fwrite(&toSave, sizeof(struct Usr), 1, file);
+	flag = fwrite(&toSave, sizeof(Usr), 1, file);
 	//check
 	if (flag)
 	{
@@ -168,7 +172,7 @@ void readUserData(const char* filename)
 	rewind(file);
 	//save into global struct: current target
 	int flag = 0;
-	flag = fread(&cur_user, sizeof(struct Usr), 1, file);
+	flag = fread(&cur_user, sizeof(Usr), 1, file);
 	if (flag)
 	{
 		printf("\nload successful");
@@ -185,7 +189,7 @@ void readUserData(const char* filename)
 }
 
 //save a Mob struct into a file, input filecode, func will read the code contents
-void writeTargetData(struct Mob input , const char *filename)
+void writeTargetData(Mob input , const char *filename)
 {
 	//create pointer for file
 	FILE*file = fopen(filename, "wb"); //open input file code, write binary
@@ -198,7 +202,7 @@ void writeTargetData(struct Mob input , const char *filename)
 
 	//write out saved
 	int flag = 0;
-	flag= fwrite(&input, sizeof(struct Mob), 1, file);
+	flag= fwrite(&input, sizeof(Mob), 1, file);
 	//check
 	if (flag)
 	{
@@ -237,7 +241,7 @@ void readTargetData(const char *filename)
 	rewind(file);
 	//save into global struct: current target
 	int flag = 0;
-	flag = fread(&cur_target, sizeof(struct Mob), 1, file);
+	flag = fread(&cur_target, sizeof(Mob), 1, file);
 	if (flag)
 	{
 		printf("\nload successful");
@@ -266,7 +270,7 @@ int listTargetData() {
 }
 
 //central message field
-int listMsgField(struct MsgField message)
+int listMsgField(MsgField message)
 {
 	printf("Round %3d\n", Round);
 	printf("%s\n",message.message1);
@@ -458,7 +462,7 @@ int selectItem()
 	return 0;
 }
 //crit action
-int usrAttack_HitCritical(struct AttackAction *attackMove ,struct Mob *target)
+int usrAttack_HitCritical(AttackAction *attackMove ,Mob *target)
 {
 	int damage = ((cur_user.atk + attackMove->buffBaseD) * (cur_user.critD + AttackMove->buffCritD)) - target->def; //(base atk+skill atk) x (player critD+move critD) 
 	//printf("\nCritical Hit");
@@ -474,7 +478,7 @@ int usrAttack_HitCritical(struct AttackAction *attackMove ,struct Mob *target)
 	return 0;
 }
 
-int usrAttack_Hit(struct AttackAction* attackMove, struct Mob* target)
+int usrAttack_Hit(AttackAction* attackMove, Mob* target)
 {
 	int damage = ((cur_user.atk + attackMove->buffBaseD) - target->def); //base atk+skill atk
 	if (damage <= 0) { damage = 0; strcpy(actionResult.message1, "Ineffective Hit! \n"); }
@@ -489,7 +493,7 @@ int usrAttack_Hit(struct AttackAction* attackMove, struct Mob* target)
 }
 
 //game system functions
-int updateRound(struct MsgField lastaction)
+int updateRound(MsgField lastaction)
 {
 	Round++;
 	system("cls");
