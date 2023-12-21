@@ -1,4 +1,3 @@
-#pragma once
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,31 +5,25 @@
 #include <conio.h>
 #include <Windows.h>
 
+#pragma once
+#include "BattleMechanics.h"
 #include "Mob_UsrStruct.c"
 #include "itemActions.c"
-//#include "skills.c"
 
-#define DUMMYTEXT "dummy text super effective!!!"
-#define BLANKLINE "\n"
-#define BOUND__HIGH 5 
-#define MENU_HEIGHT 6
+
 
 //time counters
 short Round = 1;
-int numCarryOver = 0;
 short ItemEffect[10];
 //retreat option
 int whiteFlag = 0;
 //middle message field
-typedef struct  {
+typedef struct {
 	char* message1[30];
 	char* message2[30];
 	char* message3[40];
 }MsgField;
-MsgField genericmsg = { DUMMYTEXT,DUMMYTEXT,DUMMYTEXT };
-MsgField blankmsg = { BLANKLINE,BLANKLINE,BLANKLINE };
 MsgField actionResult;
-MsgField mobAttacks;
 
 
 //action msg struct
@@ -52,12 +45,12 @@ struct AttackAction {
 struct AttackAction AttackMove[3] = {
 	{ 1,"Fast Attack",10,1,-0.3 } ,
 	{ 2,"Heavy Slam",-20,5, 0.6 },
-	{0 ,"Previous",NULL,NULL,0},
+	{0 ,"Previous",0,0,0},
 };
 
 //effect functions
 //print 1by1 (mainly used in action field
-void coolprint(char input[])
+inline void coolprint(char input[])
 {
 	int i = 0;
 	while (input[i] != '\0') {
@@ -69,7 +62,7 @@ void coolprint(char input[])
 
 
 //roll the fucking D20, remember to use variable to store results
-int diceRoll()
+inline int diceRoll()
 {
 	int roll = rand() % 100; //roll the dice
 	printf("\nROLL THE DICE");
@@ -80,7 +73,7 @@ int diceRoll()
 
 
 //list target data
-int listTargetData() {
+inline int listTargetData() {
 	printf("%s\n", cur_target.MobName);
 	printf("Hitpoints: ");
 	for (int i = 0; i < cur_target.hitpoints; i += 2) {
@@ -93,7 +86,7 @@ int listTargetData() {
 }
 
 //central message field
-int listMsgField(MsgField message)
+inline int listMsgField(MsgField message)
 {
 	printf("Round %3d\n", Round);
 	printf("%s\n", message.message1);
@@ -108,7 +101,7 @@ int listMsgField(MsgField message)
 }
 
 //list user data
-int listUserData()
+inline int listUserData()
 {
 	printf("%20s", cur_user.UsrName);
 	printf("\nHitpoints ");
@@ -123,7 +116,7 @@ int listUserData()
 }
 
 //actions field
-int listActionField()
+inline int listActionField()
 {
 	//generate boundary
 	for (int i = 0; i < BOUND__HIGH + 1; i++) {
@@ -140,7 +133,7 @@ int listActionField()
 }
 
 //just for switching menus,lists until player stats, remember to print current menu
-int fastClear()
+inline int fastClear()
 {
 	system("cls");
 	for (int i = 0; i < 36; i++) {
@@ -174,7 +167,7 @@ int fastClear()
 	return 0;
 }
 
-int listAttackMove()
+inline int listAttackMove()
 {	//boundary
 	for (int i = 0; i < MENU_HEIGHT + 1; i++)
 	{
@@ -189,7 +182,7 @@ int listAttackMove()
 		printf("%d%14s%10d%13d\n", AttackMove[x].moveID, AttackMove[x].skillName, AttackMove[x].buffHitC, AttackMove[x].buffBaseD + cur_user.atk);
 	}
 }
-int selectAttack()
+inline int selectAttack()
 {
 	//attackmove menu
 	char selectSub3 = _getch();
@@ -226,12 +219,12 @@ int selectAttack()
 	}
 }
 
-int listInvMenu()
+inline int listInvMenu()
 {//boundary
 	for (int x = 0; x < 35; x++) printf("*"); printf("\n");
 	printf("             ITEM        INVENTORY\n");
 	for (int i = 0; i < 10; i++) {
-		//if (invHold[i][0] <= 0) continue;
+		if (invHold[i][0] <= 0) continue;
 		printf("%d%16s", util[i].item_ID, util[i].item_Name); //1,2
 		//printf("%d", util[i].itemBuff_HP); //4
 		//printf("%d", util[i].itemBuff_atk); //5
@@ -245,7 +238,7 @@ int listInvMenu()
 	}
 	return 0;
 }
-int selectItem()
+inline int selectItem()
 {
 	int opt = _getch();
 	opt -= '0'; //nasty trick to convert
@@ -287,7 +280,7 @@ int selectItem()
 	return 0;
 }
 
-int checkRetreat(Mob *target) 
+inline int checkRetreat(Mob* target)
 {
 	printf("\nYou Check Your Surroundings,\nThere May Be a Way Out.");
 	printf("\n            Attempt (y/n)");
@@ -312,7 +305,7 @@ int checkRetreat(Mob *target)
 	}
 }
 //crit action
-int usrAttack_HitCritical(struct AttackAction* attackMove, Mob* target)
+inline int usrAttack_HitCritical(struct AttackAction* attackMove, Mob* target)
 {
 	int damage = ((cur_user.atk + attackMove->buffBaseD) * (cur_user.critD + AttackMove->buffCritD)) - target->def; //(base atk+skill atk) x (player critD+move critD) 
 	//printf("\nCritical Hit");
@@ -328,32 +321,23 @@ int usrAttack_HitCritical(struct AttackAction* attackMove, Mob* target)
 	return 0;
 }
 
-int usrAttack_Hit(struct AttackAction* attackMove, Mob* target)
+inline int usrAttack_Hit(struct AttackAction* attackMove, Mob* target)
 {
 	int damage = ((cur_user.atk + attackMove->buffBaseD) - target->def); //base atk+skill atk
 	if (damage <= 0) { damage = 0; strcpy(actionResult.message1, "Ineffective Hit! \n"); }
 	else {
 		target->hitpoints -= damage;
-	
+		char* dmgnum = ("%d damage", damage);
 		strcpy(actionResult.message1, "Solid Hit! \n");
+		strcpy(actionResult.message2, &dmgnum);
 	}
 	updateRound(actionResult);
 	return 0;
 }
 
 //game system functions
-int mobAction(Mob* attacker, Usr* defend)
+inline int updateRound(MsgField lastaction)
 {
-	int damage = (attacker->atk - defend->def) + rand() % 3 - rand() % 3;
-	if (damage <= 0) { damage = 0; strcpy(mobAttacks.message1, "\nYou Parried Its Attack!\n"); }
-	else { defend->hitpoints -= damage; strcpy(mobAttacks.message1, "\nThe Enemy Attacked!\n"); }
-	return damage;
-}
-
-int updateRound(MsgField lastaction)
-{
-	int dmgLast = mobAction(&cur_target, &cur_user);
-	
 	Round++;
 	//check for item duration
 	for (int i = 0; i < 10; i++) {
@@ -381,24 +365,17 @@ int updateRound(MsgField lastaction)
 	for (int i = 0; i < 36; i++) {
 		putchar('-');
 	}
-	//mob did sth
-	printf("\n"); listUserData(); listActionField(); 
-	printf("%s",mobAttacks.message1);
-	if (dmgLast != 0)printf(" || %2d Damage ||",dmgLast);
-
+	printf("\n"); listUserData(); listActionField();
 	strcpy(actionResult.message1, BLANKLINE);
 	strcpy(actionResult.message2, BLANKLINE);
-	strcpy(actionResult.message3, BLANKLINE); 
-	strcpy(mobAttacks.message1, BLANKLINE);
-	strcpy(mobAttacks.message2, BLANKLINE);
-	dmgLast = 0;
-	//reset msgfield
+	strcpy(actionResult.message3, BLANKLINE); //reset msgfield
 	rewind(stdin);
 	return 0;
 }
 
+
 //save a Usr structure to a file (can predefine)
-int writeUserData(Usr toSave, const char* filename)
+inline int writeUserData(Usr toSave, const char* filename)
 {
 	//create pointer for file
 	FILE* file = fopen(filename, "wb"); //open input file code, write binary
@@ -411,7 +388,7 @@ int writeUserData(Usr toSave, const char* filename)
 
 	//write out saved
 	int flag = 0;
-	flag = fwrite(&toSave, sizeof(Mob), 1, file);
+	flag = fwrite(&toSave, sizeof(Usr), 1, file);
 	//check
 	if (flag)
 	{
@@ -432,7 +409,7 @@ int writeUserData(Usr toSave, const char* filename)
 }
 
 //load a Usr stat sheet save
-int readUserData(const char* filename)
+inline int readUserData(const char* filename)
 {
 	//create pointer for file
 	FILE* file = fopen(filename, "rb");
@@ -452,7 +429,7 @@ int readUserData(const char* filename)
 }
 
 //save a Mob struct into a file, input filecode, func will read the code contents
-int writeTargetData(Mob input, const char* filename)
+inline int writeTargetData(Mob input, const char* filename)
 {
 	//create pointer for file
 	FILE* file = fopen(filename, "wb"); //open input file code, write binary
@@ -487,7 +464,7 @@ int writeTargetData(Mob input, const char* filename)
 }
 
 //read Mob struct into struct of current target
-int readTargetData(const char* filename)
+inline int readTargetData(const char* filename)
 {
 	//create pointer for file
 	FILE* file = fopen(filename, "rb");

@@ -18,18 +18,21 @@
     <ClCompile Include="GameFile.c">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="GameItems.c">
+    <ClCompile Include="Mob_UsrStruct.c">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="Mob_UsrStruct.c">
+    <ClCompile Include="skills.c">
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="itemActions.h">
+    <ClInclude Include="BattleMechanics.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="BattleMechanics.h">
+    <ClInclude Include="itemActions.c">
+      <Filter>來源檔案</Filter>
+    </ClInclude>
+    <ClInclude Include="skills.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>

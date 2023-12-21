@@ -8,7 +8,7 @@
 #include "BattleMechanics.h"
 
 Mob targetdefault = { "dummy",DEFAULT_HP,DEFAULT_ATK,DEFAULT_CRITC,1,DEFAULT_DEF,0,10,1 };
-Usr userdefault = { "John Doe",20,20,5,60,30,1.4,2,0,200 };
+Usr userdefault = { "John Doe",20,20,5,60,30,1.4,4,0,200 };
 
 
 int main()
@@ -49,6 +49,7 @@ int main()
 			}
 			//round timer
 			if (cur_user.hitpoints <= 0 || cur_target.hitpoints <= 0 || whiteFlag==1) return 0;
+			
 		}
 		//battle resolved
 		//saveInv(cur_inv);
