@@ -128,6 +128,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameFile.c" />
+    <ClCompile Include="Mob_UsrStruct.c" />
+    <ClCompile Include="skills.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BattleMechanics.h" />
+    <ClInclude Include="itemActions.c" />
+    <ClInclude Include="skills.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
