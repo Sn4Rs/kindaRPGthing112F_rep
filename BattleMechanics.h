@@ -39,7 +39,7 @@ struct Actions {
 	char row2[30];
 }playerTurn =
 { "1.ITEM          2.RETREAT",
-  "3.ATTACK        4.SKILL" };
+  "3.ATTACK        " };
 
 //Attack Actions
 struct AttackAction {
