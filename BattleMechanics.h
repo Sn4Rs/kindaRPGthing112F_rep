@@ -297,7 +297,7 @@ int checkRetreat(Mob *target)
 			if (target->allowRetreat == 1) {
 				whiteFlag = 1;
 				strcpy(actionResult.message2, "You Escaped From The Battle");
-				updateRound(actionResult); return 0;
+				updateRound(actionResult); rewind(stdin);  return 0;
 			}
 			else {
 				strcpy(actionResult.message1, "The Entrance is Blocked,");
@@ -306,7 +306,7 @@ int checkRetreat(Mob *target)
 			}
 		}
 		else if (opt == 'n') {
-			fastClear(); listActionField(); return 0;
+			fastClear(); listActionField(); rewind(stdin); return 0;
 		}
 		else rewind(stdin);
 	}
